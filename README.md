@@ -1,6 +1,8 @@
 # seuLectRsv
 A script for SEU automatic lecture reservation.
 
+**This project is currently (2023-11-6) experiencing environment-setting problems, caused by the conflicts between the latest version of ddddocr and pillow. Feel free to open an Issue or make a Pull request.**
+
 Tips:
  - This script requires `requests`, `pycryptodome` and `ddddocr` to work properly. Use `pip install -r requirements.txt` for a quick start.
  - Edit **config.json** before running the script.
