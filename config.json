@@ -2,6 +2,6 @@
     "username": "",
     "passwd": "",
     "onlineOnly": true,
-    "district": "九龙湖校区",
+    "district": ["四牌楼校区"],
     "filter": ["心理", "法律", "艺术", "其他", "非讲座"] 
 }

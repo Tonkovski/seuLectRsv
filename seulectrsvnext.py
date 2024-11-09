@@ -107,6 +107,7 @@ class SeuLectHelper(object):
         for key in ['username', 'passwd', 'onlineOnly', 'district', 'filter']:
             if key not in config.keys():
                 _logErrorExit_('Missing config entry "%s"!' % key)
+
         if type(config['username']) != str:
             _logErrorExit_('Wrong config format: "username" must be string!')
         if type(config['passwd']) != str:
@@ -114,11 +115,20 @@ class SeuLectHelper(object):
         if config['username'] == '' or config['passwd'] == '':
             _logErrorExit_('Wrong config format: "username" and "passwd" must '
                            'not be blank!')
+            
         if type(config['onlineOnly']) != bool:
             _logErrorExit_('Wrong config format: "onlineOnly" must be boolean!')
-        if config['district'] not in self._district_list:
-            _logErrorExit_('Wrong config format: "district" must be one of the '
-                           'following:\n%s' % self._district_list)
+
+        if type(config['district']) != list:
+            _logErrorExit_('Wrong config format: "district" must be list!')
+        for entity in config['district']:
+            if entity not in self._district_list :
+                _logErrorExit_('Wrong config format: "district" contains '
+                               'unknown entity "%s"' % entity)
+        if len(config['filter']) == 0:
+            _logErrorExit_('Wrong config format: "district" must not be '
+                           'left blank!')
+                
         if type(config['filter']) != list:
             _logErrorExit_('Wrong config format: "preferences" must be list!')
         for entity in config['filter']:
@@ -129,9 +139,10 @@ class SeuLectHelper(object):
             _logErrorExit_('Wrong config format: "preferences" must not be '
                            'left blank!')
         
-        config['district'] = str(
-            self._district_list.index(config['district']) + 1
-        )
+        district_list = []
+        for dist in config['district']:
+            district_list.append(str(self._district_list.index(dist) + 1))
+        config['district'] = district_list
 
         return config
     
@@ -206,11 +217,11 @@ class SeuLectHelper(object):
 
         _logprint_('Refreshing lecture data...')
         data = {
-            'pageIndex': 1,
-            'pageSize': 1000
+            'pageIndex': '1',
+            'pageSize': '100'
         }
 
-        resp = self.sess.post(self._lect_data_url, data,
+        resp = self.sess.post(self._lect_data_url, params=data,
                             headers = self._postHeaders,
                             verify = False)
         if resp.headers['Server'] == 'openresty':
@@ -267,9 +278,15 @@ class SeuLectHelper(object):
 
         lect_data = list(
             filter(
-                lambda x: time.mktime(
-                    time.strptime(x['YYJSSJ'], "%Y-%m-%d %H:%M:%S")
-                ) >= time.time(), lectlist
+                lambda x:
+                    time.mktime(
+                        time.strptime(x['YYJSSJ'], "%Y-%m-%d %H:%M:%S")
+                    ) >= time.time() and\
+                    # time.mktime(
+                    #     time.strptime(x['YYKSSJ'], "%Y-%m-%d %H:%M:%S")
+                    # ) <= time.time() and\
+                    x['FBZT'] != "-1",
+                lectlist
             )
         )
 
@@ -281,7 +298,7 @@ class SeuLectHelper(object):
             lect_data = list(
                 filter(
                     lambda x: x['JZDD'] in ['腾讯会议', '钉钉'] or\
-                              x['SZXQ'] == self.config['district'],
+                              x['SZXQ'] in self.config['district'],
                               lect_data
                 )
             )
@@ -380,16 +397,22 @@ class SeuLectHelper(object):
         print('Script scratched by t0nkov.')
         print('Warning, this script is only tested under SEU-WLAN.')
         _logprint_('Starting script in 3 sec...')
-        time.sleep(3)
-        
-        while self.lectlist == None:
-            self.authLoginApp()
-            self.lectlist = self.getLectData()
-        self.lectlist = self.matchLectTarget(self.lectlist)
+        # time.sleep(3)
 
         rsv_success = False
+        rsv_incoming = False
         while not rsv_success:
+            if not rsv_incoming:
+                while self.lectlist == None:
+                    self.authLoginApp()
+                    self.lectlist = self.getLectData()
+                self.lectlist = self.matchLectTarget(self.lectlist)
+            
+            for i in self.lectlist:
+                print(i['JZMC'])
+
             lect_targets = self.filterLectTime()
+
             if lect_targets == []:
                 most_recent_time = float('inf')
                 for lect in lect_targets:
@@ -423,7 +446,8 @@ class SeuLectHelper(object):
                 else:
                     _logprint_('Reservation failed! Error log: %s' % respdata['msg'])
                     if respdata['msg'] == '请求过于频繁，请稍后重试':
-                        _logprint_('Awaiting for reservation ban lift, '
+                        _logprint_('Rate limiting triggered!!! '
+                                   'Awaiting for reservation ban lift, '
                                    'countdown 1 min...')
                         time.sleep(60)
 
