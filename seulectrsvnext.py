@@ -415,7 +415,7 @@ class SeuLectHelper(object):
 
             if lect_targets == []:
                 most_recent_time = float('inf')
-                for lect in lect_targets:
+                for lect in self.lectlist:
                     lect_rsv_start_time = time.mktime(
                         time.strptime(lect['YYKSSJ'], "%Y-%m-%d %H:%M:%S")
                     )
