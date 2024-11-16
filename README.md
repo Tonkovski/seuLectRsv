@@ -9,6 +9,9 @@ Tips:
      - `filter` is used to focus on certain lecture categories. The list's order determines the choosing priority. The available choices are `心理`, `法律`, `艺术`, `其他` and `非讲座`.
  - Check configExample.json for tutorial.
 
+Update 2024-11-16:
+* Fixed a dumb bug which greatly lags reservation process.
+
 Update 2024-11-10:
 * Enhanced logic:
   * No longer triggers rate limiting when matched lecture is cancelled.
