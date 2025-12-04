@@ -1,4 +1,7 @@
 # seuLectRsv
+
+## The features of this script will be migrated to [seu-wingman-elite](https://github.com/Tonkovski/seu-wingman-elite). Am archiving this repo, sorry.
+
 A script for SEU automatic lecture reservation.
 
 Tips:
@@ -25,5 +28,6 @@ Update 2024-10-19:
 * This is still a prototype, need more testing.
 
 Edit: This project is no longer facing env-related issues due to updated ddddocr project.
+
 
 ~~This project is currently (2023-11-6) experiencing environment-setting problems, caused by the conflicts between the latest version of ddddocr and pillow. Feel free to open an Issue or make a Pull request.~~
